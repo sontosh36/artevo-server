@@ -22,6 +22,15 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+    const database = client.db("artevo_DB");
+    const artCollection = database.collection("artworks");
+
+    app.post("/artworks", async (req, res) => {
+      const newArtwork = req.body;
+      const result = await artCollection.insertOne(newArtwork);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       `pinged your deployment. You Successfully connected to mongoDB!`,
