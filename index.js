@@ -1,18 +1,42 @@
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 const app = express();
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 3000;
 
 // middleware
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) =>{
-    res.send(`server content is comming`);
-})
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.l1sfp1m.mongodb.net/?appName=Cluster0`;
 
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
 
+async function run() {
+  try {
+    await client.connect();
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      `pinged your deployment. You Successfully connected to mongoDB!`,
+    );
+  } finally {
+    // await client.close();
+    // Because finally closes the connection, but the server still needs it.
+  }
+}
+run().catch(console.dir);
 
-app.listen(port, () =>{
-    console.log(`server start on port ${port}`);
-})
+app.get("/", (req, res) => {
+  res.send(`server content is comming`);
+});
+
+app.listen(port, () => {
+  console.log(`server start on port ${port}`);
+});
