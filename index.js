@@ -25,9 +25,19 @@ async function run() {
     const database = client.db("artevo_DB");
     const artCollection = database.collection("artworks");
 
+    // insert Artworks postAPI
     app.post("/artworks", async (req, res) => {
       const newArtwork = req.body;
       const result = await artCollection.insertOne(newArtwork);
+      res.send(result);
+    });
+
+    app.get("/featured-artworks", async (req, res) => {
+      const cursor = artCollection
+        .find({ visibility: "public" })
+        .sort({ create_at: -1 })
+        .limit(6);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
