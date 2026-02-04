@@ -31,6 +31,12 @@ async function run() {
       const result = await artCollection.insertOne(newArtwork);
       res.send(result);
     });
+    // explore artworks API
+    app.get('/artworks', async(req, res) =>{
+      const cursor = artCollection.find({visibility: 'public'}).sort({title: 1});
+      const result = await cursor.toArray();
+      res.send(result);
+    })
     // featured artwork get API
     app.get("/featured-artworks", async (req, res) => {
       const cursor = artCollection
