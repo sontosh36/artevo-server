@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 3000;
 
 // middleware
@@ -31,7 +31,7 @@ async function run() {
       const result = await artCollection.insertOne(newArtwork);
       res.send(result);
     });
-
+    // featured artwork get API
     app.get("/featured-artworks", async (req, res) => {
       const cursor = artCollection
         .find({ visibility: "public" })
@@ -40,7 +40,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
+    // artwork details API
+    app.get("/artwork/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await artCollection.findOne(query);
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       `pinged your deployment. You Successfully connected to mongoDB!`,
