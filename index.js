@@ -32,11 +32,13 @@ async function run() {
       res.send(result);
     });
     // explore artworks API
-    app.get('/artworks', async(req, res) =>{
-      const cursor = artCollection.find({visibility: 'public'}).sort({title: 1});
+    app.get("/artworks", async (req, res) => {
+      const cursor = artCollection
+        .find({ visibility: "public" })
+        .sort({ title: 1 });
       const result = await cursor.toArray();
       res.send(result);
-    })
+    });
     // featured artwork get API
     app.get("/featured-artworks", async (req, res) => {
       const cursor = artCollection
@@ -53,6 +55,24 @@ async function run() {
       const result = await artCollection.findOne(query);
       res.send(result);
     });
+    // my gallery api
+    app.get("/my-artworks", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.artistEmail = email;
+      }
+      const cursor = artCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // artwork delete api
+    app.delete('/artwork/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await artCollection.deleteOne(query);
+      res.send(result);
+    })
     await client.db("admin").command({ ping: 1 });
     console.log(
       `pinged your deployment. You Successfully connected to mongoDB!`,
