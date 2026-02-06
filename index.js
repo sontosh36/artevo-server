@@ -67,12 +67,23 @@ async function run() {
       res.send(result);
     });
     // artwork delete api
-    app.delete('/artwork/:id', async(req, res) =>{
+    app.delete("/artwork/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await artCollection.deleteOne(query);
       res.send(result);
-    })
+    });
+    // artwork patch api
+    app.put("/artwork/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: updatedData,
+      };
+      const result = await artCollection.updateOne(query, update);
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       `pinged your deployment. You Successfully connected to mongoDB!`,
