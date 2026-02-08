@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const admin = require("firebase-admin");
+const serviceAccount = require("./artevoServiceKey.json");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 3000;
@@ -9,6 +11,31 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const verifyFirebaseToken = async (req, res, next) =>{
+  if (!req.headers.authorization) {
+    return res.status(401).send({message: 'unauthorized access'});
+  }
+  const token = req.headers.authorization.split(' ')[1];
+  if(!token){
+    return res.status(401).send({message: 'unauthorized access'})
+  }
+  // verify token
+  try{
+    const userInfo = await admin.auth().verifyIdToken(token);
+    req.token_email = userInfo.email;
+    next();
+    
+  }
+  catch{
+    console.log('invalid token')
+    return res.status(401).send({message: 'unauthorized access'})
+    
+  }
+}
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.l1sfp1m.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -26,7 +53,7 @@ async function run() {
     const artCollection = database.collection("artworks");
 
     // insert Artworks postAPI
-    app.post("/artworks", async (req, res) => {
+    app.post("/artworks", verifyFirebaseToken, async (req, res) => {
       const newArtwork = req.body;
       const result = await artCollection.insertOne(newArtwork);
       res.send(result);
@@ -84,6 +111,11 @@ async function run() {
       const result = await artCollection.updateOne(query, update);
       res.send(result);
     });
+    app.get('/search', async(req, res)=>{
+      const searchText = req.query.search;
+      const result = await artCollection.find({title: {$regex: searchText, $options: 'i'}}).toArray();
+      res.send(result);
+    })
     await client.db("admin").command({ ping: 1 });
     console.log(
       `pinged your deployment. You Successfully connected to mongoDB!`,
