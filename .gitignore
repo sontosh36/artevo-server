@@ -1,3 +1,4 @@
 node_modules
 .env
 artevoServiceKey.json
+.vercel
